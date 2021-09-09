@@ -15,42 +15,44 @@ func Unpack(in string) (string, error) {
 		return "", nil
 	}
 	var out strings.Builder
+loop:
 	for i := 0; i <= len(inRune)-1; {
-		if unicode.IsDigit(inRune[i]) {
+		switch true {
+		case unicode.IsDigit(inRune[i]):
 			return "", ErrInvalidString
-		}
-		if string(inRune[i]) == `\` {
-			if !unicode.IsDigit(inRune[i+1]) && string(inRune[i+1]) != `\` {
+		case string(inRune[i]) == `\`:
+			switch true {
+			case i == len(inRune)-1:
 				return "", ErrInvalidString
-			} else if i+2 == len(inRune) {
+			case !unicode.IsDigit(inRune[i+1]) && string(inRune[i+1]) != `\`:
+				return "", ErrInvalidString
+			case i+2 == len(inRune):
 				out.WriteString(string(inRune[i+1]))
-				break
-			} else if unicode.IsDigit(inRune[i+2]) {
+				break loop
+			case unicode.IsDigit(inRune[i+2]):
 				count, _ := strconv.Atoi(string(inRune[i+2]))
 				out.WriteString(strings.Repeat(string(inRune[i+1]), count))
 				i += 3
-				continue
-			} else {
+				continue loop
+			default:
 				out.WriteString(string(inRune[i+1]))
 				i += 2
-				continue
+				continue loop
 			}
-		}
-		if i+1 <= len(inRune) {
-			if i+1 == len(inRune) {
+		case i+1 <= len(inRune):
+			switch true {
+			case i+1 == len(inRune):
 				out.WriteString(string(inRune[i]))
-				break
-			} else if unicode.IsDigit(inRune[i+1]) {
+				break loop
+			case unicode.IsDigit(inRune[i+1]):
 				count, _ := strconv.Atoi(string(inRune[i+1]))
 				out.WriteString(strings.Repeat(string(inRune[i]), count))
 				i += 2
-			} else {
+			default:
 				out.WriteRune(inRune[i])
-				i += 1
+				i++
 			}
-
 		}
-
 	}
 	return out.String(), nil
 }
