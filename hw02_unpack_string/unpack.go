@@ -26,12 +26,14 @@ func Unpack(in string) (string, error) {
 				out.WriteString(string(inRune[i+1]))
 				break
 			} else if unicode.IsDigit(inRune[i+2]) {
-				count, _ := strconv.Atoi(string(in[i+2]))
+				count, _ := strconv.Atoi(string(inRune[i+2]))
 				out.WriteString(strings.Repeat(string(inRune[i+1]), count))
 				i += 3
+				continue
 			} else {
 				out.WriteString(string(inRune[i+1]))
 				i += 2
+				continue
 			}
 		}
 		if i+1 <= len(inRune) {
