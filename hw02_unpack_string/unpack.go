@@ -17,11 +17,11 @@ func Unpack(in string) (string, error) {
 	var out strings.Builder
 loop:
 	for i := 0; i <= len(inRune)-1; {
-		switch true {
+		switch {
 		case unicode.IsDigit(inRune[i]):
 			return "", ErrInvalidString
 		case string(inRune[i]) == `\`:
-			switch true {
+			switch {
 			case i == len(inRune)-1:
 				return "", ErrInvalidString
 			case !unicode.IsDigit(inRune[i+1]) && string(inRune[i+1]) != `\`:
@@ -39,9 +39,9 @@ loop:
 				i += 2
 				continue loop
 			}
-		case i+1 <= len(inRune):
-			switch true {
-			case i+1 == len(inRune):
+		default:
+			switch {
+			case i == len(inRune)-1:
 				out.WriteString(string(inRune[i]))
 				break loop
 			case unicode.IsDigit(inRune[i+1]):
