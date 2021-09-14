@@ -7,7 +7,7 @@ import (
 )
 
 // Change to true if needed.
-var taskWithAsteriskIsCompleted = false
+var taskWithAsteriskIsCompleted = true
 
 var text = `Как видите, он  спускается  по  лестнице  вслед  за  своим
 	другом   Кристофером   Робином,   головой   вниз,  пересчитывая
@@ -42,6 +42,10 @@ var text = `Как видите, он  спускается  по  лестни�
 	иногда,  особенно  когда  папа  дома,  он больше любит тихонько
 	посидеть у огня и послушать какую-нибудь интересную сказку.
 		В этот вечер...`
+
+var newText1 = `Golang — компилируемый многопоточный
+	язык программирования, разработанный внутри компании Google.`
+var newText2 = `qqqq wwww eeee rrrr tttt yyyy uuuu iiii oooo pppp aaaa ssss`
 
 func TestTop10(t *testing.T) {
 	t.Run("no words in empty string", func(t *testing.T) {
@@ -78,5 +82,34 @@ func TestTop10(t *testing.T) {
 			}
 			require.Equal(t, expected, Top10(text))
 		}
+	})
+	t.Run("additional positive test #1", func(t *testing.T) { // Менее 10 слов
+		expected := []string{
+			"golang",
+			"google",
+			"внутри",
+			"компании",
+			"компилируемый",
+			"многопоточный",
+			"программирования",
+			"разработанный",
+			"язык",
+		}
+		require.Equal(t, expected, Top10(newText1))
+	})
+	t.Run("additional positive test #2", func(t *testing.T) { // Более 10 слов с одинаковым количеством
+		expected := []string{
+			"aaaa",
+			"eeee",
+			"iiii",
+			"oooo",
+			"pppp",
+			"qqqq",
+			"rrrr",
+			"ssss",
+			"tttt",
+			"uuuu",
+		}
+		require.Equal(t, expected, Top10(newText2))
 	})
 }
