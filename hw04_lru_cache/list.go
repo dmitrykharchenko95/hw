@@ -17,10 +17,9 @@ type ListItem struct {
 }
 
 type list struct {
-	List // Remove me after realization.
+	List// Remove me after realization.
+	ListItem
 	// Place your code here.
 }
 
-func NewList() List {
-	return new(list)
-}
+

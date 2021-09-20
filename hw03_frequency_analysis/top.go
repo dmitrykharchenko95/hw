@@ -1,9 +1,9 @@
 package hw03frequencyanalysis
 
 import (
-	"fmt"
 	"sort"
 	"strings"
+	"unicode"
 )
 
 type StringAndAmount struct {
@@ -16,11 +16,11 @@ func Top10(inputString string) []string {
 		return []string{}
 	}
 	inputString = strings.ToLower(inputString)
-	punctuationMarks := []string{"!", ",", ".", ":", "`", " -", `"`, "(", ")", " —"}
-	for _, val := range punctuationMarks {
-		inputString = strings.ReplaceAll(inputString, val, "")
-	}
-	inputSlice := strings.Fields(inputString)
+	inputString = strings.ReplaceAll(inputString, "- ", "")
+	inputSlice := strings.FieldsFunc(inputString, func(r rune) bool {
+		return !unicode.IsLetter(r) && !unicode.IsNumber(r) && r != '-'
+	})
+
 	sort.Slice(inputSlice, func(i, j int) bool {
 		return inputSlice[i] < inputSlice[j]
 	})
@@ -50,14 +50,10 @@ func Top10(inputString string) []string {
 		return amountData[i].String < amountData[j].String
 	})
 
-	fmt.Println(amountData)
-
 	var outputSlice []string
-	var num int
+	num := 10
 	if len(amountData) < 10 {
 		num = len(amountData)
-	} else {
-		num = 10
 	}
 	for i := 0; i < num; i++ {
 		outputSlice = append(outputSlice, amountData[i].String)
