@@ -1,9 +1,9 @@
 package hw03frequencyanalysis
 
 import (
-	"fmt"
 	"sort"
 	"strings"
+	"unicode"
 )
 
 type StringAndAmount struct {
@@ -16,51 +16,36 @@ func Top10(inputString string) []string {
 		return []string{}
 	}
 	inputString = strings.ToLower(inputString)
-	punctuationMarks := []string{"!", ",", ".", ":", "`", " -", `"`, "(", ")", " —"}
-	for _, val := range punctuationMarks {
-		inputString = strings.ReplaceAll(inputString, val, "")
-	}
-	inputSlice := strings.Fields(inputString)
-	sort.Slice(inputSlice, func(i, j int) bool {
-		return inputSlice[i] < inputSlice[j]
+	inputString = strings.ReplaceAll(inputString, "- ", "")
+	inputSlice := strings.FieldsFunc(inputString, func(r rune) bool {
+		return !unicode.IsLetter(r) && !unicode.IsNumber(r) && r != '-'
 	})
 
-	amountData := []StringAndAmount{}
-	amount := 1
+	inputMap := make(map[string]int)
 
-	for i := 0; i < len(inputSlice); {
-		switch {
-		case i == len(inputSlice)-1:
-			amountData = append(amountData, StringAndAmount{inputSlice[i], amount})
-			i++
-		case inputSlice[i] == inputSlice[i+1]:
-			i++
-			amount++
-			continue
-		case inputSlice[i] != inputSlice[i+1]:
-			amountData = append(amountData, StringAndAmount{inputSlice[i], amount})
-			i++
-			amount = 1
-		}
+	for _, v := range inputSlice {
+		inputMap[v]++
 	}
-	sort.Slice(amountData, func(i, j int) bool {
-		if amountData[i].Amount != amountData[j].Amount {
-			return amountData[i].Amount > amountData[j].Amount
-		}
-		return amountData[i].String < amountData[j].String
-	})
 
-	fmt.Println(amountData)
+	fullOutputSlice := []StringAndAmount{}
+	for key, val := range inputMap {
+		fullOutputSlice = append(fullOutputSlice, StringAndAmount{key, val})
+	}
+
+	sort.Slice(fullOutputSlice, func(i, j int) bool {
+		if fullOutputSlice[i].Amount != fullOutputSlice[j].Amount {
+			return fullOutputSlice[i].Amount > fullOutputSlice[j].Amount
+		}
+		return fullOutputSlice[i].String < fullOutputSlice[j].String
+	})
 
 	var outputSlice []string
-	var num int
-	if len(amountData) < 10 {
-		num = len(amountData)
-	} else {
-		num = 10
+	num := 10
+	if len(fullOutputSlice) < 10 {
+		num = len(fullOutputSlice)
 	}
 	for i := 0; i < num; i++ {
-		outputSlice = append(outputSlice, amountData[i].String)
+		outputSlice = append(outputSlice, fullOutputSlice[i].String)
 	}
 
 	return outputSlice
