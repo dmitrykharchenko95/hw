@@ -49,8 +49,39 @@ func TestCache(t *testing.T) {
 		require.Nil(t, val)
 	})
 
-	t.Run("purge logic", func(t *testing.T) {
-		// Write me
+	t.Run("purge logic #1", func(t *testing.T) {
+		c := NewCache(3)
+		for i := 0; i < 4; i++ {
+			c.Set(Key(strconv.Itoa(i)), i)
+		}
+		val, ok := c.Get("0")
+		require.False(t, ok)
+		require.Nil(t, val)
+	})
+
+	t.Run("purge logic #2", func(t *testing.T) {
+		c := NewCache(5)
+		for i := 0; i < 5; i++ {
+			c.Set(Key(strconv.Itoa(i)), i)
+		}
+		val, _ := c.Get("0")
+		c.Set("1", val)
+		val, _ = c.Get("3")
+		c.Set("4", val)
+		c.Set("5", 5)
+		val, ok := c.Get("2")
+		require.False(t, ok)
+		require.Nil(t, val)
+	})
+
+	t.Run("Clear cache", func(t *testing.T) {
+		c := NewCache(3)
+		for i := 0; i < 3; i++ {
+			c.Set(Key(strconv.Itoa(i)), i)
+		}
+		c.Clear()
+		exited := NewCache(3)
+		require.Equal(t, exited, c)
 	})
 }
 

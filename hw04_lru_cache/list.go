@@ -17,71 +17,114 @@ type ListItem struct {
 }
 
 type list struct {
-	//List// Remove me after realization.
-	Data 		[]ListItem
-	FrontItem 	ListItem
-	BackItem 	ListItem
+	front *ListItem
+	back  *ListItem
+	size  int
 	// Place your code here.
 }
 
-func NewList() List {
+func NewList() *list {
 	return new(list)
 }
 
-func (l list) Len() int {
-	return len(l.Data)
+func (l *list) Len() int {
+	return l.size
 }
 
-func (l list) Front() *ListItem  {
-	for _, f := range l.Data {
-		if f.Prev == nil {
-			return &f
+func (l *list) Front() *ListItem {
+	if l.size == 0 {
+		return nil
+	}
+	return l.front
+}
+
+func (l *list) Back() *ListItem {
+	if l.size == 0 {
+		return nil
+	}
+	return l.back
+}
+
+func (l *list) PushFront(v interface{}) *ListItem {
+	if l.size == 0 {
+		l.front = &ListItem{
+			v,
+			nil,
+			nil,
 		}
-		f = *f.Prev
-	}
-	return nil
-}
-
-func (l list) Back() *ListItem {
-	for _, b := range l.Data {
-		if b.Next == nil {
-			return &b
+		l.back = l.front
+	} else {
+		newFront := &ListItem{
+			v,
+			l.front,
+			nil,
 		}
-		b = *b.Next
+		l.front.Prev = newFront
+		l.front = newFront
 	}
-	return nil
+	l.size++
+	return l.front
 }
 
-func (l list) PushFront (v interface{}) *ListItem  {
-	f := ListItem {
-		v,
-		l.Front(),
-		nil,
+func (l *list) PushBack(v interface{}) *ListItem {
+	if l.size == 0 {
+		l.back = &ListItem{
+			v,
+			nil,
+			nil,
+		}
+		l.front = l.back
+	} else {
+		newBack := &ListItem{
+			v,
+			nil,
+			l.back,
+		}
+		l.back.Next = newBack
+		l.back = newBack
 	}
-	l.Front().Prev = &f
-	return &f
+	l.size++
+	return l.back
 }
 
-func (l list) PushBack (v interface{}) *ListItem  {
-	b := ListItem {
-		v,
-		nil,
-		l.Back(),
+func (l *list) Remove(i *ListItem) {
+	switch {
+	case l.Len() == 1:
+		i.Value = nil
+	case i == l.front:
+		i.Next.Prev = nil
+		l.front = i.Next
+	case i == l.back:
+		i.Prev.Next = nil
+		l.back = i.Prev
+	default:
+		i.Prev.Next = i.Next
+		i.Next.Prev = i.Prev
+		i.Value = nil
 	}
-	l.Back().Next = &b
-	return &b
+	l.size--
 }
 
-func (l list) Remove(i *ListItem)  {
-	i.Prev.Next = i.Next
-	i.Next.Prev = i.Prev
-	i.Next, i.Prev = nil, nil
-}
+func (l *list) MoveToFront(i *ListItem) {
+	switch {
+	case l.front == i:
+	case l.back == i:
+		l.back = l.back.Prev
+		l.back.Next = nil
 
-func (l list) MoveToFront(i *ListItem)()  {
-	i.Prev = nil
-	i.Next = l.Front()
-	i.Prev.Next = i.Next
-	i.Next.Prev = i.Prev
-}
+		i.Next = l.front
+		i.Prev = nil
+		l.front = i
 
+		i.Next.Prev = i
+	default:
+		i.Prev.Next = i.Next
+		i.Next.Prev = i.Prev
+
+		i.Next = l.front
+		i.Prev = nil
+		l.front = i
+
+		i.Next.Prev = i
+	}
+}
