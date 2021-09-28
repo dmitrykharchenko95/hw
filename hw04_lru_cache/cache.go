@@ -15,7 +15,7 @@ type Cache interface {
 
 type lruCache struct {
 	capacity int
-	queue    List
+	queue    ListInter
 	sync.Mutex
 	items map[Key]*ListItem
 }

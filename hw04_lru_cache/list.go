@@ -1,6 +1,6 @@
 package hw04lrucache
 
-type List interface {
+type ListInter interface {
 	Len() int
 	Front() *ListItem
 	Back() *ListItem
@@ -16,35 +16,35 @@ type ListItem struct {
 	Prev  *ListItem
 }
 
-type list struct {
+type List struct {
 	front *ListItem
 	back  *ListItem
 	size  int
 }
 
-func NewList() *list {
-	return new(list)
+func NewList() *List {
+	return new(List)
 }
 
-func (l *list) Len() int {
+func (l *List) Len() int {
 	return l.size
 }
 
-func (l *list) Front() *ListItem {
+func (l *List) Front() *ListItem {
 	if l.size == 0 {
 		return nil
 	}
 	return l.front
 }
 
-func (l *list) Back() *ListItem {
+func (l *List) Back() *ListItem {
 	if l.size == 0 {
 		return nil
 	}
 	return l.back
 }
 
-func (l *list) PushFront(v interface{}) *ListItem {
+func (l *List) PushFront(v interface{}) *ListItem {
 	if l.size == 0 {
 		l.front = &ListItem{
 			v,
@@ -65,7 +65,7 @@ func (l *list) PushFront(v interface{}) *ListItem {
 	return l.front
 }
 
-func (l *list) PushBack(v interface{}) *ListItem {
+func (l *List) PushBack(v interface{}) *ListItem {
 	if l.size == 0 {
 		l.back = &ListItem{
 			v,
@@ -86,7 +86,7 @@ func (l *list) PushBack(v interface{}) *ListItem {
 	return l.back
 }
 
-func (l *list) Remove(i *ListItem) {
+func (l *List) Remove(i *ListItem) {
 	switch {
 	case l.Len() == 1:
 		i.Value = nil
@@ -104,7 +104,7 @@ func (l *list) Remove(i *ListItem) {
 	l.size--
 }
 
-func (l *list) MoveToFront(i *ListItem) {
+func (l *List) MoveToFront(i *ListItem) {
 	switch {
 	case l.front == i:
 	case l.back == i:
