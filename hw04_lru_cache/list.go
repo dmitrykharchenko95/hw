@@ -20,7 +20,6 @@ type list struct {
 	front *ListItem
 	back  *ListItem
 	size  int
-	// Place your code here.
 }
 
 func NewList() *list {
