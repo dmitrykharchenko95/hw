@@ -3,6 +3,7 @@ package hw05parallelexecution
 import (
 	"errors"
 	"sync"
+	"sync/atomic"
 )
 
 var ErrErrorsLimitExceeded = errors.New("errors limit exceeded")
@@ -11,43 +12,51 @@ type Task func() error
 
 // Run starts tasks in n goroutines and stops its work when receiving m errors from tasks.
 func Run(tasks []Task, n, m int) error {
-	tasksCh := make(chan struct{}, n)
-	maxErrCh := make(chan struct{}, 1)
+	M := int32(m)
+	var err error
+
+	maxErrCh := make(chan struct{})
+	tasksCh := make(chan Task)
 
 	var wg sync.WaitGroup
-	var mu sync.Mutex
 
 	if m == 0 {
 		return ErrErrorsLimitExceeded
 	}
 
-	for _, task := range tasks {
-		wg.Add(1)
-		tasksCh <- struct{}{}
-
-		select {
-		case <-maxErrCh:
-			wg.Done()
-			wg.Wait()
-			return ErrErrorsLimitExceeded
-		default:
-		}
-
-		go func(task Task, m *int, tasksCh chan struct{}) {
-			defer wg.Done()
-			err := task()
-			if err != nil {
-				mu.Lock()
-				if *m == 0 {
-					maxErrCh <- struct{}{}
+	go func(err *error) {
+		defer close(tasksCh)
+		for _, task := range tasks {
+			select {
+			case <-maxErrCh:
+				*err = ErrErrorsLimitExceeded
+				return
+			default:
+				select {
+				case <-maxErrCh:
+					*err = ErrErrorsLimitExceeded
+					return
+				case tasksCh <- task:
 				}
-				*m--
-				mu.Unlock()
 			}
-			<-tasksCh
-		}(task, &m, tasksCh)
+		}
+	}(&err)
+
+	for i := 0; i < n; i++ {
+		wg.Add(1)
+		go func(M *int32) {
+			defer wg.Done()
+			for task := range tasksCh {
+				if task() != nil {
+					if atomic.CompareAndSwapInt32(M, 0, 0) {
+						close(maxErrCh)
+					}
+					atomic.AddInt32(M, -1)
+				}
+			}
+		}(&M)
 	}
 
 	wg.Wait()
-	return nil
+	return err
 }
