@@ -58,7 +58,8 @@ func TestValidate(t *testing.T) {
 	}{
 		{in: "string", expectedErr: ErrIsNotStruct},
 
-		{in: TestType{
+		{
+			in: TestType{
 				UnsupportedTypeField: 3.14,
 				WrongTagField:        "test wrong tag",
 				LessMin:              2,
