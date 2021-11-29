@@ -48,4 +48,23 @@ func TestList(t *testing.T) {
 		}
 		require.Equal(t, []int{70, 80, 60, 40, 10, 30, 50}, elems)
 	})
+	t.Run("additions", func(t *testing.T) {
+		// перезапись элементов l1 в l2 в обратном порядке с последующим удалением l1
+		l1 := NewList()
+		l2 := NewList()
+
+		for i := 0; i < 10; i++ {
+			l1.PushFront(i)
+		}
+		for i := l1.Back(); i != nil; i = i.Prev {
+			l2.PushFront(i.Value)
+			l1.Remove(i)
+		}
+		elems := make([]int, 0, l2.Len())
+		for i := l2.front; i != nil; i = i.Next {
+			elems = append(elems, i.Value.(int))
+		}
+		require.Nil(t, l1.front.Value, l1.front.Prev, l1.front.Next, l1.back.Value, l1.back.Prev, l1.back.Next)
+		require.Equal(t, []int{9, 8, 7, 6, 5, 4, 3, 2, 1, 0}, elems)
+	})
 }
