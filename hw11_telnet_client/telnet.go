@@ -50,10 +50,7 @@ func (c *Client) Connect() error {
 }
 
 func (c *Client) Close() error {
-	if err := c.Conn.Close(); err != nil {
-		return err
-	}
-	return nil
+	return c.Conn.Close()
 }
 
 func (c *Client) Send() error {
