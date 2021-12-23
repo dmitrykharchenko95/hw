@@ -2,19 +2,38 @@ package app
 
 import (
 	"context"
+	"time"
+
+	"github.com/dmitrykharchenko95/hw/hw12_13_14_15_calendar/internal/storage"
+	"github.com/sirupsen/logrus"
 )
 
-type App struct { // TODO
+type App struct {
+	logger  Logger
+	storage Storage
 }
 
-type Logger interface { // TODO
+type Logger interface {
+	logrus.FieldLogger
 }
 
-type Storage interface { // TODO
+type Storage interface {
+	Connect(ctx context.Context) (err error)
+	Close() error
+	CreateEvent(ctx context.Context, event storage.Event) error
+	UpdateEvent(ctx context.Context, event storage.Event) error
+	DeleteEvent(ctx context.Context, i int64) error
+
+	ListEventsForDay(ctx context.Context, t time.Time) ([]storage.Event, error)
+	ListEventsForWeek(ctx context.Context, t time.Time) ([]storage.Event, error)
+	ListEventsForMonth(ctx context.Context, t time.Time) ([]storage.Event, error)
 }
 
 func New(logger Logger, storage Storage) *App {
-	return &App{}
+	return &App{
+		logger:  logger,
+		storage: storage,
+	}
 }
 
 func (a *App) CreateEvent(ctx context.Context, id, title string) error {
