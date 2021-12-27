@@ -1,0 +1,16 @@
+{
+  "Logger": {
+    "Level": "INFO"
+  },
+  "Storage": {
+    "DSN": "host=localhost port=5432 user=username password=userpassword dbname=calendar sslmode=disable",
+    "InMemory": true
+  },
+  "HTTPServer": {
+    "Host": "localhost",
+    "Port": "8082"
+  },
+  "GRPCServer": {
+    "Addr": ""
+  }
+}
