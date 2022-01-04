@@ -31,4 +31,13 @@ install-lint-deps:
 lint: install-lint-deps
 	golangci-lint run ./...
 
+generate:
+	mkdir -p internal/server/pb
+
+	protoc \
+		--proto_path=api/ \
+        --go_out=. \
+        --go-grpc_out=. \
+        api/*.proto
+
 .PHONY: build run build-img run-img version test lint

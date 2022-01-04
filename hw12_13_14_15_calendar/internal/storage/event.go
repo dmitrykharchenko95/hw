@@ -7,9 +7,17 @@ import (
 )
 
 var (
-	ErrNoteNotFound = errors.New("note not found")
-	ErrWrongID      = errors.New("wrong note id")
+	ErrEventNotFound     = errors.New("event not found")
+	ErrWrongID           = errors.New("wrong event id")
+	ErrEmptyFieldOfEvent = errors.New("one of field (title, start date, end date or user id) is empty")
 )
+
+func NewEventValidate(e Event) error {
+	if e.Title == "" || e.StartDate.IsZero() || e.EndDate.IsZero() || e.UserID == 0 {
+		return ErrEmptyFieldOfEvent
+	}
+	return nil
+}
 
 type Event struct {
 	ID        int64         `db:"id"`

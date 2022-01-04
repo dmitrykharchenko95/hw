@@ -12,15 +12,16 @@ type Config struct {
 		Level string `config:"level"`
 	}
 	Storage struct {
-		DSN      string `config:"db_dsn"`
-		InMemory bool   `config:"in_memory"`
+		DSN   string `config:"db_dsn"`
+		Store string `config:"db_store"`
 	}
 	HTTPServer struct {
 		Host string `config:"http_host"`
 		Port string `config:"http_port"`
 	}
 	GRPCServer struct {
-		Addr string `config:"grpc_addr"`
+		Host string `config:"grpc_host"`
+		Port string `config:"grpc_port"`
 	}
 }
 
