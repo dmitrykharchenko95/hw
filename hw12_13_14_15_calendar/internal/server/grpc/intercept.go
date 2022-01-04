@@ -22,8 +22,14 @@ func UnaryServerRequestLoggerInterceptor(logg *logrus.Logger) grpc.UnaryServerIn
 		start := time.Now()
 
 		resp, err := handler(ctx, req)
+		if err != nil {
+			logg.Errorf("UnaryServerRequestLoggerInterceptor: can not handle request: %v", err)
+		}
 
 		ip, err := getClientIP(ctx)
+		if err != nil {
+			logg.Errorf("can not get client IP: %v", err)
+		}
 
 		md, _ := metadata.FromIncomingContext(ctx)
 

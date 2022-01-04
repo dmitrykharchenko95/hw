@@ -1,11 +1,10 @@
-package internalgrpc //nolint
+package internalgrpc
 
 import (
 	"context"
 	"fmt"
 	"log"
 	"net"
-	"time"
 
 	"github.com/dmitrykharchenko95/hw/hw12_13_14_15_calendar/internal/server/pb"
 	"github.com/dmitrykharchenko95/hw/hw12_13_14_15_calendar/internal/storage"
@@ -28,9 +27,7 @@ func NewSever(logg *logrus.Logger, store *storage.Storage, host, port string) *S
 		logg:  logg,
 		store: store,
 		srv: grpc.NewServer(
-			grpc.ChainUnaryInterceptor(UnaryServerRequestLoggerInterceptor(logg)), // Перехватчик а ля миддлвеар
-			grpc.ConnectionTimeout(time.Second*5),
-			// Создание интерсептера (перехватчика) с использованием валидатора (пишем сами)
+			grpc.ChainUnaryInterceptor(UnaryServerRequestLoggerInterceptor(logg)),
 		),
 		addr: net.JoinHostPort(host, port),
 	}
