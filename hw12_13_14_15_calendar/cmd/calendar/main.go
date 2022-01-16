@@ -13,16 +13,13 @@ import (
 	"github.com/dmitrykharchenko95/hw/hw12_13_14_15_calendar/internal/server"
 	internalgrpc "github.com/dmitrykharchenko95/hw/hw12_13_14_15_calendar/internal/server/grpc"
 	internalhttp "github.com/dmitrykharchenko95/hw/hw12_13_14_15_calendar/internal/server/http"
-	"github.com/dmitrykharchenko95/hw/hw12_13_14_15_calendar/internal/storage"
-	memorystorage "github.com/dmitrykharchenko95/hw/hw12_13_14_15_calendar/internal/storage/memory"
-	sqlstorage "github.com/dmitrykharchenko95/hw/hw12_13_14_15_calendar/internal/storage/sql"
 	_ "github.com/dmitrykharchenko95/hw/hw12_13_14_15_calendar/migrations"
 )
 
 var configFile string
 
 func init() {
-	flag.StringVar(&configFile, "config", "./configs/config.json", "Path to configuration file")
+	flag.StringVar(&configFile, "config", "./configs/calendar_config.json", "Path to configuration file")
 }
 
 func main() {
@@ -43,17 +40,9 @@ func main() {
 		log.Fatal("cannot create new logger", err)
 	}
 
-	var store storage.Storage
-
-	switch config.Storage.Store {
-	case "in-memory":
-		logg.Info("Use in-memory storage")
-		store = memorystorage.New(logg)
-	case "sql":
-		logg.Info("Use sql storage")
-		store = sqlstorage.New(config.Storage.DSN, logg)
-	default:
-		logg.Errorf("wrong srorage type:%v", store)
+	store, err := InitStore(config.Storage.Store, config.Storage.DSN, logg)
+	if err != nil {
+		logg.Warn(err)
 		return
 	}
 
@@ -90,7 +79,7 @@ func main() {
 	logg.Info("calendar is running...")
 
 	if err := srv.Start(ctx); err != nil {
-		logg.Error("failed to start srv: " + err.Error())
+		logg.Errorf("failed to start srv: %v", err)
 		cancel()
 		os.Exit(1) //nolint:gocritic
 	}

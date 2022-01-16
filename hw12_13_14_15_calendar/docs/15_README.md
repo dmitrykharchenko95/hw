@@ -15,7 +15,7 @@
 придется "подкладывать" конфиг сервису с помощью Dockerfile / docker-compose -
 при этом можно "заполнять" конфигурационный файл из переменных окружения, например
 ```bash
-$ envsubst < config_template.json > config.json
+$ envsubst < config_template.json > calendar_config.json
 ```
 * если миграции выполняются руками, а не на старте сервиса, то также в docker-compose
 должен запускаться one-shot скрипт, который делает это (применяет SQL миграции,

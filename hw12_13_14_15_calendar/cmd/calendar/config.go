@@ -3,8 +3,12 @@ package main
 import (
 	"context"
 
+	"github.com/dmitrykharchenko95/hw/hw12_13_14_15_calendar/internal/storage"
+	memorystorage "github.com/dmitrykharchenko95/hw/hw12_13_14_15_calendar/internal/storage/memory"
+	sqlstorage "github.com/dmitrykharchenko95/hw/hw12_13_14_15_calendar/internal/storage/sql"
 	"github.com/heetch/confita"
 	"github.com/heetch/confita/backend/file"
+	"github.com/sirupsen/logrus"
 )
 
 type Config struct {
@@ -34,4 +38,22 @@ func NewConfig() (*Config, error) {
 	}
 
 	return cfg, nil
+}
+
+func InitStore(storeType, dsn string, logg *logrus.Logger) (storage.Storage, error) {
+	var store storage.Storage
+
+	switch storeType {
+	case "in-memory":
+		logg.Info("Use in-memory storage")
+		store = memorystorage.New(logg)
+	case "sql":
+		logg.Info("Use sql storage")
+		store = sqlstorage.New(dsn, logg)
+	default:
+		logg.Errorf("wrong srorage type:%v", storeType)
+		return nil, storage.ErrWrongStorageType
+	}
+
+	return store, nil
 }

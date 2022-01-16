@@ -15,6 +15,7 @@ const (
 	day   = time.Hour * 24
 	week  = time.Hour * 168
 	month = time.Hour * 720
+	year  = day * 365
 )
 
 type Storage struct {
@@ -149,4 +150,50 @@ func (s *Storage) ListEventsForWeek(ctx context.Context, t time.Time) ([]storage
 
 func (s *Storage) ListEventsForMonth(ctx context.Context, t time.Time) ([]storage.Event, error) {
 	return s.listEventsForPeriod(ctx, t, month)
+}
+
+func (s *Storage) GetEventForNotification(ctx context.Context, t time.Duration) ([]storage.Event, error) {
+	now := time.Now()
+	events := make([]storage.Event, 0, 1)
+
+	rows, err := s.db.QueryxContext(ctx, //nolint:sqlclosecheck
+		`SELECT * FROM events 
+		WHERE 
+		(start_date - make_interval(secs => send_time)) BETWEEN $1 AND $2`,
+		now, now.Add(t))
+	if err != nil {
+		return events, err
+	}
+
+	defer func(rows *sqlx.Rows) {
+		err := rows.Close()
+		if err != nil {
+			err = fmt.Errorf("cannot close rows: %w", err)
+			s.logg.Error(err)
+		}
+	}(rows)
+
+	for rows.Next() {
+		var event storage.Event
+		if err := rows.StructScan(&event); err != nil {
+			return events, err
+		}
+		events = append(events, event)
+	}
+
+	s.logg.Infof("Got %d events for notification", len(events))
+	return events, err
+}
+
+func (s *Storage) DeleteOldEvents(ctx context.Context) error {
+	now := time.Now()
+
+	_, err := s.db.ExecContext(ctx, `
+		DELETE FROM events
+		WHERE end_date < $1 `, now.Add(-year))
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
