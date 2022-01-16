@@ -9,7 +9,6 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/dmitrykharchenko95/hw/hw12_13_14_15_calendar/internal/app"
 	"github.com/dmitrykharchenko95/hw/hw12_13_14_15_calendar/internal/logger"
 	"github.com/dmitrykharchenko95/hw/hw12_13_14_15_calendar/internal/server"
 	internalgrpc "github.com/dmitrykharchenko95/hw/hw12_13_14_15_calendar/internal/server/grpc"
@@ -46,16 +45,26 @@ func main() {
 
 	var store storage.Storage
 
-	if config.Storage.InMemory {
-		store = sqlstorage.New(config.Storage.DSN, logg)
-	} else {
+	switch config.Storage.Store {
+	case "in-memory":
+		logg.Info("Use in-memory storage")
 		store = memorystorage.New(logg)
+	case "sql":
+		logg.Info("Use sql storage")
+		store = sqlstorage.New(config.Storage.DSN, logg)
+	default:
+		logg.Errorf("wrong srorage type:%v", store)
+		return
 	}
 
-	calendar := app.New(logg, store)
-	_ = calendar
-	httpServer := internalhttp.NewServer(logg, config.HTTPServer.Host, config.HTTPServer.Port)
-	grpcServer := internalgrpc.NewSever(logg, config.GRPCServer.Addr)
+	err = store.Connect(context.Background())
+	if err != nil {
+		logg.Warnf("can not connect with DB: %v", err)
+		return
+	}
+
+	httpServer := internalhttp.NewServer(logg, &store, config.HTTPServer.Host, config.HTTPServer.Port)
+	grpcServer := internalgrpc.NewSever(logg, &store, config.GRPCServer.Host, config.GRPCServer.Port)
 
 	srv := server.NewServer(httpServer, grpcServer)
 
@@ -70,14 +79,18 @@ func main() {
 		defer cancel()
 
 		if err := srv.HTTP.Stop(ctx); err != nil {
-			logg.Error("failed to stop http srv: " + err.Error())
+			logg.Errorf("failed to stop http srv: %v", err)
+		}
+
+		if err := srv.GRPC.Stop(ctx); err != nil {
+			logg.Errorf("failed to stop grpc srv: %v", err)
 		}
 	}()
 
 	logg.Info("calendar is running...")
 
-	if err := srv.HTTP.Start(ctx); err != nil {
-		logg.Error("failed to start http srv: " + err.Error())
+	if err := srv.Start(ctx); err != nil {
+		logg.Error("failed to start srv: " + err.Error())
 		cancel()
 		os.Exit(1) //nolint:gocritic
 	}

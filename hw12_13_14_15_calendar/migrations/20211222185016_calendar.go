@@ -13,10 +13,10 @@ func init() {
 func upCalendar(tx *sql.Tx) error {
 	_, err := tx.Exec(`CREATE TABLE events(
 		id serial NOT NULL PRIMARY KEY,
-		title VARCHAR NOT NULL,
+		title TEXT NOT NULL,
 		start_date TIMESTAMP NOT NULL,
 		end_date TIMESTAMP NOT NULL,
-		content VARCHAR,
+		content TEXT,
 		user_id INT NOT NULL,
 		send_time BIGINT NOT NULL DEFAULT 0);`)
 	if err != nil {

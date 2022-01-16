@@ -106,7 +106,7 @@ func TestStorage_DeleteEvent(t *testing.T) {
 
 	t.Run("note not found", func(t *testing.T) {
 		err := testStorage.DeleteEvent(context.Background(), 5)
-		require.ErrorIs(t, err, storage.ErrNoteNotFound)
+		require.ErrorIs(t, err, storage.ErrEventNotFound)
 	})
 }
 
@@ -141,7 +141,7 @@ func TestStorage_UpdateEvent(t *testing.T) {
 
 	t.Run("event not exist", func(t *testing.T) {
 		err := testStorage.UpdateEvent(context.Background(), storage.Event{ID: 4})
-		require.ErrorIs(t, err, storage.ErrNoteNotFound)
+		require.ErrorIs(t, err, storage.ErrEventNotFound)
 	})
 }
 

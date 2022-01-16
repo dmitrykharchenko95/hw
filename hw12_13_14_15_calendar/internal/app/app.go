@@ -9,12 +9,8 @@ import (
 )
 
 type App struct {
-	logger  Logger
-	storage Storage
-}
-
-type Logger interface {
-	logrus.FieldLogger
+	logger  *logrus.Logger
+	storage *Storage
 }
 
 type Storage interface {
@@ -29,7 +25,7 @@ type Storage interface {
 	ListEventsForMonth(ctx context.Context, t time.Time) ([]storage.Event, error)
 }
 
-func New(logger Logger, storage Storage) *App {
+func New(logger *logrus.Logger, storage *Storage) *App {
 	return &App{
 		logger:  logger,
 		storage: storage,

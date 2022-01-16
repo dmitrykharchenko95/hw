@@ -4,13 +4,14 @@
   },
   "Storage": {
     "DSN": "host=localhost port=5432 user=username password=userpassword dbname=calendar sslmode=disable",
-    "InMemory": true
+    "Store": "in-memory"
   },
   "HTTPServer": {
     "Host": "localhost",
-    "Port": "8082"
+    "Port": "8080"
   },
   "GRPCServer": {
-    "Addr": ""
+    "Host": "localhost",
+    "Port": "50052"
   }
 }
