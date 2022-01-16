@@ -26,22 +26,20 @@ func (s *Server) Start(ctx context.Context) error {
 
 	wg.Add(2)
 
-	go func(wg *sync.WaitGroup) error {
+	go func(wg *sync.WaitGroup) {
 		defer wg.Done()
 		err = s.HTTP.Start(ctx)
 		if err != nil {
-			return err
+			s.HTTP.Logg.Fatalf("HTTP server start error: %v\n", err)
 		}
-		return nil
 	}(&wg)
 
-	go func(wg *sync.WaitGroup) error {
+	go func(wg *sync.WaitGroup) {
 		defer wg.Done()
 		err = s.GRPC.Start(ctx)
 		if err != nil {
-			return err
+			s.GRPC.Logg.Fatalf("gRPC server start error: %v\n", err)
 		}
-		return nil
 	}(&wg)
 
 	wg.Wait()

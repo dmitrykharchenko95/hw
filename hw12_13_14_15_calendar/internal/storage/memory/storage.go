@@ -2,6 +2,7 @@ package memorystorage
 
 import (
 	"context"
+	"fmt"
 	"sort"
 	"sync"
 	"time"
@@ -117,4 +118,33 @@ func (s *Storage) ListEventsForWeek(ctx context.Context, t time.Time) ([]storage
 
 func (s *Storage) ListEventsForMonth(ctx context.Context, t time.Time) ([]storage.Event, error) {
 	return s.listEventsForPeriod(ctx, t, month)
+}
+
+func (s *Storage) GetEventForNotification(ctx context.Context, t time.Duration) ([]storage.Event, error) {
+	now := time.Now()
+	events := make([]storage.Event, 0, 1)
+
+	for _, e := range s.Data {
+		if e.StartDate.Add(-e.SendTime).After(now) && e.StartDate.Add(-e.SendTime).Before(now.Add(t)) {
+			events = append(events, e)
+		}
+	}
+	s.logg.Infof("Got %d events for notification", len(events))
+	return events, nil
+}
+
+func (s *Storage) DeleteOldEvents(ctx context.Context) error {
+	now := time.Now()
+
+	for _, e := range s.Data {
+		if e.EndDate.Before(now.AddDate(-1, 0, 0)) {
+			err := s.DeleteEvent(ctx, e.ID)
+			if err != nil {
+				s.logg.Errorf("can not delete event: %v", err)
+				return fmt.Errorf("can not delete event: %w", err)
+			}
+		}
+	}
+
+	return nil
 }

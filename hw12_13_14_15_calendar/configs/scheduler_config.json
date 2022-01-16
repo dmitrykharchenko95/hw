@@ -1,0 +1,21 @@
+{
+  "Logger": {
+    "Level": "INFO"
+  },
+  "Storage": {
+    "DSN": "host=localhost port=5432 user=username password=userpassword dbname=calendar sslmode=disable"
+  },
+  "RabbitMQ": {
+    "Host": "localhost",
+    "Port": 5672,
+    "User": "guest",
+    "Password": "guest",
+    "ExchangeName": "default",
+    "ExchangeType": "fanout",
+    "Queue": "default",
+    "BindingKey": "test-binding"
+  },
+  "Scheduler": {
+    "Period": "30s"
+  }
+}

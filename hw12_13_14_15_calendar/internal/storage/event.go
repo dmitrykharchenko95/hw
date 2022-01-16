@@ -10,6 +10,7 @@ var (
 	ErrEventNotFound     = errors.New("event not found")
 	ErrWrongID           = errors.New("wrong event id")
 	ErrEmptyFieldOfEvent = errors.New("one of field (title, start date, end date or user id) is empty")
+	ErrWrongStorageType  = errors.New("wrong storage type")
 )
 
 func NewEventValidate(e Event) error {
@@ -39,4 +40,7 @@ type Storage interface {
 	ListEventsForDay(ctx context.Context, t time.Time) ([]Event, error)
 	ListEventsForWeek(ctx context.Context, t time.Time) ([]Event, error)
 	ListEventsForMonth(ctx context.Context, t time.Time) ([]Event, error)
+
+	GetEventForNotification(ctx context.Context, t time.Duration) ([]Event, error)
+	DeleteOldEvents(ctx context.Context) error
 }

@@ -1,0 +1,16 @@
+{
+  "Logger": {
+    "Level": "INFO"
+  },
+  "RabbitMQ": {
+    "Host": "localhost",
+    "Port": 5672,
+    "User": "guest",
+    "Password": "guest",
+    "ExchangeName": "default",
+    "ExchangeType": "fanout",
+    "Queue": "default",
+    "BindingKey": "test-binding",
+    "Tag": "default"
+  }
+}

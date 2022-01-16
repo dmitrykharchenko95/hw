@@ -15,7 +15,7 @@ import (
 )
 
 type Server struct {
-	logg  *logrus.Logger
+	Logg  *logrus.Logger
 	store *storage.Storage
 	srv   *grpc.Server
 	addr  string
@@ -24,7 +24,7 @@ type Server struct {
 
 func NewSever(logg *logrus.Logger, store *storage.Storage, host, port string) *Server {
 	return &Server{
-		logg:  logg,
+		Logg:  logg,
 		store: store,
 		srv: grpc.NewServer(
 			grpc.ChainUnaryInterceptor(UnaryServerRequestLoggerInterceptor(logg)),
@@ -39,7 +39,7 @@ func (s *Server) Start(ctx context.Context) error {
 		return err
 	}
 	pb.RegisterStorageServer(s.srv, s)
-	s.logg.Infof("Start grpc server on %s...", s.addr)
+	s.Logg.Infof("Start grpc server on %s...", s.addr)
 	if err := s.srv.Serve(lsn); err != nil {
 		log.Fatal(err)
 	}
@@ -47,7 +47,7 @@ func (s *Server) Start(ctx context.Context) error {
 }
 
 func (s *Server) Stop(ctx context.Context) error {
-	s.logg.Info("Stop grpc server...")
+	s.Logg.Info("Stop grpc server...")
 	s.srv.Stop()
 	return nil
 }
@@ -66,7 +66,7 @@ func (s *Server) CreateEvent(ctx context.Context, e *pb.Event) (*pb.Response, er
 
 	err := (*s.store).CreateEvent(ctx, event)
 	if err != nil {
-		s.logg.Errorf("can not create event: %v", err)
+		s.Logg.Errorf("can not create event: %v", err)
 		res.Error = fmt.Sprintf("can not create event: %v", err)
 		return &res, err
 	}
@@ -89,7 +89,7 @@ func (s *Server) UpdateEvent(ctx context.Context, e *pb.Event) (*pb.Response, er
 
 	err := (*s.store).UpdateEvent(ctx, event)
 	if err != nil {
-		s.logg.Errorf("can not update event: %v", err)
+		s.Logg.Errorf("can not update event: %v", err)
 		res.Error = fmt.Sprintf("can not update event: %v", err)
 		return &res, err
 	}
@@ -103,7 +103,7 @@ func (s *Server) DeleteEvent(ctx context.Context, id *pb.DeleteEventReq) (*pb.Re
 
 	err := (*s.store).DeleteEvent(ctx, id.GetId())
 	if err != nil {
-		s.logg.Errorf("can not delete event: %v", err)
+		s.Logg.Errorf("can not delete event: %v", err)
 		res.Error = fmt.Sprintf("can not delete event: %v", err)
 		return &res, err
 	}
@@ -139,7 +139,7 @@ func (s *Server) listEventsForPeriod(ctx context.Context, t *timestamp.Timestamp
 	}
 
 	if err != nil {
-		s.logg.Errorf("can not list events: %v", err)
+		s.Logg.Errorf("can not list events: %v", err)
 		res.Error = fmt.Sprintf("can not list events: %v", err)
 		return &res, err
 	}

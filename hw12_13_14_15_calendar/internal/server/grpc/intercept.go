@@ -31,7 +31,14 @@ func UnaryServerRequestLoggerInterceptor(logg *logrus.Logger) grpc.UnaryServerIn
 			logg.Errorf("can not get client IP: %v", err)
 		}
 
-		md, _ := metadata.FromIncomingContext(ctx)
+		mdAuthority := []string{"unknown URL"}
+		mdUserAgent := []string{"unknown user agent"}
+
+		md, ok := metadata.FromIncomingContext(ctx)
+		if ok {
+			mdAuthority = md.Get(":authority")
+			mdUserAgent = md.Get("user-agent")
+		}
 
 		var dataLen int
 
@@ -41,7 +48,7 @@ func UnaryServerRequestLoggerInterceptor(logg *logrus.Logger) grpc.UnaryServerIn
 		}
 
 		logg.Infof("%v %v %v %vbytes %vms %v",
-			ip, info.FullMethod, md.Get(":authority"), dataLen, time.Since(start).Microseconds(), md.Get("user-agent"))
+			ip, info.FullMethod, mdAuthority, dataLen, time.Since(start).Microseconds(), mdUserAgent)
 
 		return resp, err
 	}

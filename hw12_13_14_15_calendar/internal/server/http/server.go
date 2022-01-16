@@ -12,40 +12,42 @@ import (
 )
 
 type Server struct {
-	logg  *logrus.Logger
+	Logg  *logrus.Logger
 	srv   *http.Server
 	addr  string
 	store *storage.Storage
 }
 
 func NewServer(logger *logrus.Logger, store *storage.Storage, host, port string) *Server {
-	mux := http.NewServeMux()
-	mux.HandleFunc("/", hello)
-	mux.HandleFunc("/create", createEvent(store, logger))
-	mux.HandleFunc("/update", updateEvent(store, logger))
-	mux.HandleFunc("/delete", deleteEvent(store, logger))
-	mux.HandleFunc("/list/day", listEvents(store, logger, "day"))
-	mux.HandleFunc("/list/week", listEvents(store, logger, "week"))
-	mux.HandleFunc("/list/month", listEvents(store, logger, "month"))
-
-	wrappedMux := loggingMiddleware(mux, logger)
-
 	addr := net.JoinHostPort(host, port)
-	return &Server{
-		logg: logger,
+
+	s := &Server{
+		Logg: logger,
 		srv: &http.Server{
 			Addr:         addr,
 			ReadTimeout:  5 * time.Second,
 			WriteTimeout: 5 * time.Second,
-			Handler:      wrappedMux,
 		},
 		addr:  addr,
 		store: store,
 	}
+
+	mux := http.NewServeMux()
+	mux.HandleFunc("/", hello)
+	mux.HandleFunc("/create", s.createEvent())
+	mux.HandleFunc("/update", s.updateEvent())
+	mux.HandleFunc("/delete", s.deleteEvent())
+	mux.HandleFunc("/list/day", s.listEvents("day"))
+	mux.HandleFunc("/list/week", s.listEvents("week"))
+	mux.HandleFunc("/list/month", s.listEvents("month"))
+
+	s.srv.Handler = loggingMiddleware(mux, logger)
+
+	return s
 }
 
 func (s *Server) Start(ctx context.Context) error {
-	s.logg.Infof("Start http server on %s...", s.addr)
+	s.Logg.Infof("Start http server on %s...", s.addr)
 
 	if err := s.srv.ListenAndServe(); !errors.Is(err, http.ErrServerClosed) {
 		return err
@@ -55,7 +57,7 @@ func (s *Server) Start(ctx context.Context) error {
 }
 
 func (s *Server) Stop(ctx context.Context) error {
-	s.logg.Info("Stop http server...")
+	s.Logg.Info("Stop http server...")
 
 	return s.srv.Shutdown(ctx)
 }

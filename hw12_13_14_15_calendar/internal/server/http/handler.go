@@ -40,17 +40,14 @@ func WriteResponse(w http.ResponseWriter, resp *Response, logg *logrus.Logger) {
 	w.Header().Set("Content-Type", "application/json; charset=utf-8")
 }
 
-func createEvent( //nolint:dupl
-	store *storage.Storage,
-	logg *logrus.Logger,
-) func(w http.ResponseWriter, r *http.Request) {
+func (s *Server) createEvent() func(w http.ResponseWriter, r *http.Request) { //nolint:dupl
 	return func(w http.ResponseWriter, r *http.Request) {
 		resp := &Response{}
 		if r.Method != http.MethodPost {
 			resp.Error = fmt.Sprintf("method %s not supported on uri %s", r.Method, r.URL.Path)
 			w.WriteHeader(http.StatusMethodNotAllowed)
-			WriteResponse(w, resp, logg)
-			logg.Errorf("unsupported method %s, must be POST", r.Method)
+			WriteResponse(w, resp, s.Logg)
+			s.Logg.Errorf("unsupported method %s, must be POST", r.Method)
 			return
 		}
 
@@ -61,37 +58,33 @@ func createEvent( //nolint:dupl
 		if err != nil && !errors.Is(err, io.EOF) {
 			resp.Error = fmt.Sprintf("wrong format input:%v", err)
 			w.WriteHeader(http.StatusBadRequest)
-			WriteResponse(w, resp, logg)
-			logg.Errorf("can not decode request body: %v", err)
+			WriteResponse(w, resp, s.Logg)
+			s.Logg.Errorf("can not decode request body: %v", err)
 			return
 		}
 
-		err = (*store).CreateEvent(context.Background(), event)
+		err = (*s.store).CreateEvent(context.Background(), event)
 		if err != nil {
 			resp.Error = fmt.Sprintf("can not create event:%v", err)
 			w.WriteHeader(http.StatusInternalServerError)
-			WriteResponse(w, resp, logg)
-			logg.Errorf("can not create event: %v", err)
+			WriteResponse(w, resp, s.Logg)
+			s.Logg.Errorf("can not create event: %v", err)
 			return
 		}
 
 		resp.Info = "Event created" //nolint:goconst
-		WriteResponse(w, resp, logg)
+		WriteResponse(w, resp, s.Logg)
 	}
 }
 
-func listEvents(
-	store *storage.Storage,
-	logg *logrus.Logger,
-	period string,
-) func(w http.ResponseWriter, r *http.Request) {
+func (s *Server) listEvents(period string) func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		resp := &Response{}
 		if r.Method != http.MethodGet {
 			resp.Error = fmt.Sprintf("method %s not supported on uri %s", r.Method, r.URL.Path)
 			w.WriteHeader(http.StatusMethodNotAllowed)
-			WriteResponse(w, resp, logg)
-			logg.Errorf("unsupported method %s, must be GET", r.Method)
+			WriteResponse(w, resp, s.Logg)
+			s.Logg.Errorf("unsupported method %s, must be GET", r.Method)
 			return
 		}
 
@@ -100,8 +93,8 @@ func listEvents(
 		if err != nil && !errors.Is(err, io.EOF) {
 			resp.Error = fmt.Sprintf("can not read request body: %v", err)
 			w.WriteHeader(http.StatusBadRequest)
-			WriteResponse(w, resp, logg)
-			logg.Errorf("can not read request body: %v", err)
+			WriteResponse(w, resp, s.Logg)
+			s.Logg.Errorf("can not read request body: %v", err)
 			return
 		}
 
@@ -109,8 +102,8 @@ func listEvents(
 		if err != nil && !errors.Is(err, io.EOF) {
 			resp.Error = "wrong date format, must be 'YYYY-MM-DD'"
 			w.WriteHeader(http.StatusBadRequest)
-			WriteResponse(w, resp, logg)
-			logg.Errorf("can not parse date: %v", err)
+			WriteResponse(w, resp, s.Logg)
+			s.Logg.Errorf("can not parse date: %v", err)
 			return
 		}
 
@@ -118,37 +111,35 @@ func listEvents(
 
 		switch period {
 		case "day":
-			events, err = (*store).ListEventsForDay(context.Background(), date)
+			events, err = (*s.store).ListEventsForDay(context.Background(), date)
 		case "week":
-			events, err = (*store).ListEventsForWeek(context.Background(), date)
+			events, err = (*s.store).ListEventsForWeek(context.Background(), date)
 		case "month":
-			events, err = (*store).ListEventsForMonth(context.Background(), date)
+			events, err = (*s.store).ListEventsForMonth(context.Background(), date)
 		}
 
 		if err != nil {
 			resp.Error = fmt.Sprintf("events search error: %v", err)
 			w.WriteHeader(http.StatusInternalServerError)
-			WriteResponse(w, resp, logg)
-			logg.Errorf("events search error: %v", err)
+			WriteResponse(w, resp, s.Logg)
+			s.Logg.Errorf("events search error: %v", err)
 			return
 		}
 
 		resp.Data = events
-		WriteResponse(w, resp, logg)
+		WriteResponse(w, resp, s.Logg)
 	}
 }
 
-func updateEvent( //nolint:dupl
-	store *storage.Storage,
-	logg *logrus.Logger,
+func (s *Server) updateEvent( //nolint:dupl
 ) func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		resp := &Response{}
 		if r.Method != http.MethodPut {
 			resp.Error = fmt.Sprintf("method %s not supported on uri %s", r.Method, r.URL.Path)
 			w.WriteHeader(http.StatusMethodNotAllowed)
-			WriteResponse(w, resp, logg)
-			logg.Errorf("unsupported method %s, must be PUT", r.Method)
+			WriteResponse(w, resp, s.Logg)
+			s.Logg.Errorf("unsupported method %s, must be PUT", r.Method)
 			return
 		}
 
@@ -159,34 +150,34 @@ func updateEvent( //nolint:dupl
 		if err != nil && !errors.Is(err, io.EOF) {
 			resp.Error = fmt.Sprintf("wrong format input:%v", err)
 			w.WriteHeader(http.StatusBadRequest)
-			WriteResponse(w, resp, logg)
-			logg.Errorf("can not decode request body: %v", err)
+			WriteResponse(w, resp, s.Logg)
+			s.Logg.Errorf("can not decode request body: %v", err)
 			return
 		}
 
-		err = (*store).UpdateEvent(context.Background(), event)
+		err = (*s.store).UpdateEvent(context.Background(), event)
 		if err != nil {
 			resp.Error = fmt.Sprintf("can not update event:%v", err)
 			w.WriteHeader(http.StatusInternalServerError)
 
-			WriteResponse(w, resp, logg)
-			logg.Errorf("can not update event: %v", err)
+			WriteResponse(w, resp, s.Logg)
+			s.Logg.Errorf("can not update event: %v", err)
 			return
 		}
 
 		resp.Info = "Event updated"
-		WriteResponse(w, resp, logg)
+		WriteResponse(w, resp, s.Logg)
 	}
 }
 
-func deleteEvent(store *storage.Storage, logg *logrus.Logger) func(w http.ResponseWriter, r *http.Request) {
+func (s *Server) deleteEvent() func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		resp := &Response{}
 		if r.Method != http.MethodDelete {
 			resp.Error = fmt.Sprintf("method %s not supported on uri %s", r.Method, r.URL.Path)
 			w.WriteHeader(http.StatusMethodNotAllowed)
-			WriteResponse(w, resp, logg)
-			logg.Errorf("unsupported method %s, must be DELETE", r.Method)
+			WriteResponse(w, resp, s.Logg)
+			s.Logg.Errorf("unsupported method %s, must be DELETE", r.Method)
 			return
 		}
 
@@ -195,8 +186,8 @@ func deleteEvent(store *storage.Storage, logg *logrus.Logger) func(w http.Respon
 		if err != nil && !errors.Is(err, io.EOF) {
 			resp.Error = fmt.Sprintf("can not read request body: %v", err)
 			w.WriteHeader(http.StatusBadRequest)
-			WriteResponse(w, resp, logg)
-			logg.Errorf("can not read request body: %v", err)
+			WriteResponse(w, resp, s.Logg)
+			s.Logg.Errorf("can not read request body: %v", err)
 			return
 		}
 
@@ -204,21 +195,21 @@ func deleteEvent(store *storage.Storage, logg *logrus.Logger) func(w http.Respon
 		if err != nil {
 			resp.Error = "event id must be digit"
 			w.WriteHeader(http.StatusBadRequest)
-			WriteResponse(w, resp, logg)
-			logg.Errorf("can not convert request body to int: %v", err)
+			WriteResponse(w, resp, s.Logg)
+			s.Logg.Errorf("can not convert request body to int: %v", err)
 			return
 		}
 
-		err = (*store).DeleteEvent(context.Background(), int64(noteID))
+		err = (*s.store).DeleteEvent(context.Background(), int64(noteID))
 		if err != nil {
 			resp.Error = fmt.Sprintf("can not delete event:%v", err)
 			w.WriteHeader(http.StatusInternalServerError)
-			WriteResponse(w, resp, logg)
-			logg.Errorf("can not delete event: %v", err)
+			WriteResponse(w, resp, s.Logg)
+			s.Logg.Errorf("can not delete event: %v", err)
 			return
 		}
 
 		resp.Info = "Event deleted"
-		WriteResponse(w, resp, logg)
+		WriteResponse(w, resp, s.Logg)
 	}
 }
